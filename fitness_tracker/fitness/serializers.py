@@ -1,4 +1,5 @@
 from django.contrib.auth.models import User
+from django.contrib.auth import authenticate
 from rest_framework import serializers
 from .models import Activity, Notification
 
@@ -13,6 +14,18 @@ class UserSerializer(serializers.ModelSerializer):
             user.set_password(validated_data['password'])
             user.save()
             return user
+        
+class UserLoginSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ('username', 'password')
+
+        def validate(self, attrs):
+            user = authenticate(username=attrs['username'], password=attrs['password'])
+            if user is None:
+                raise serializers.ValidationError("Invalid credentials")
+            attrs['user'] = user
+            return attrs
 
 class ActivitySerializer(serializers.ModelSerializer):
     class Meta:
